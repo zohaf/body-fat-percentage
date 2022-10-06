@@ -1,5 +1,9 @@
+import { FormEvent, useState } from "react";
 import styled, { css } from "styled-components";
 import { useMultiStepForm } from "./useMultiStepForm";
+import { UserAccount } from "./userAccount";
+import { UserAddress } from "./userAddress";
+import { UserForm } from "./userForm";
 
 const Container = styled.div`
   display: flex;
@@ -35,7 +39,35 @@ const Button = styled.button`
   text-align: center;
 `;
 
+type FormData = {
+  firstName: string;
+  lastName: string;
+  age: string;
+  address: string;
+  city: string;
+  country: string;
+  email: string;
+  password: string;
+};
+
+const INITIAL_DATA: FormData = {
+  firstName: "",
+  lastName: "",
+  age: "",
+  address: "",
+  city: "",
+  country: "",
+  email: "",
+  password: "",
+};
+
 function App() {
+  const [data, setData] = useState(INITIAL_DATA);
+  const updateFields = (fields: Partial<FormData>) => {
+    setData((prev) => {
+      return { ...prev, ...fields };
+    });
+  };
   const {
     currentStepIndex,
     formSteps,
@@ -44,11 +76,25 @@ function App() {
     goBackStep,
     isFirstStep,
     isLastStep,
-  } = useMultiStepForm([<div>one</div>, <div>two</div>, <div>three</div>]);
+  } = useMultiStepForm([
+    <UserForm {...data} updateFields={updateFields} />,
+    <UserAddress {...data} updateFields={updateFields} />,
+    <UserAccount {...data} updateFields={updateFields} />,
+  ]);
+
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!isLastStep) {
+      goForwardStep();
+    } else {
+      console.log("submited!");
+      alert("Form Submitted");
+    }
+  };
 
   return (
     <ContainerRelative>
-      <form action="">
+      <form onSubmit={onSubmit}>
         <ContainerAbsolute>
           {currentStepIndex + 1} ____ {formSteps.length}
         </ContainerAbsolute>
@@ -60,9 +106,7 @@ function App() {
             </Button>
           )}
 
-          <Button type="button" onClick={() => goForwardStep()}>
-            {isLastStep ? "Submit" : "Next"}
-          </Button>
+          <Button type="submit">{isLastStep ? "Submit" : "Next"}</Button>
         </Container>
       </form>
     </ContainerRelative>
